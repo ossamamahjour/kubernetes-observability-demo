@@ -67,7 +67,7 @@ chmod +x kind-linux-amd64
 # Move the Kind binary to a directory in my local PATH
 mv kind-linux-amd64 /usr/local/bin/kind  
 
-# Create a new Kind cluster with the desired name
+# Create Kind cluster
 kind create cluster --name veriff-o11y
 
 # Install kubectl
