@@ -52,11 +52,36 @@ This repository fulfills the requirements of the Veriff O11Y Engineer Test Task,
 ## Setup Instructions
 ### 1. Cluster Setup with Kind
 ```bash
-# Create a Kind cluster
+# Update package index
+sudo apt update 
+
+# Install Docker
+sudo apt install docker.io -y 
+
+# Download Kind
+wget https://github.com/kubernetes-sigs/kind/releases/download/v0.27.0/kind-linux-amd64
+
+# Make the Kind binary executable
+chmod +x kind-linux-amd64                                                                                      
+
+# Move the Kind binary to a directory in your PATH
+mv kind-linux-amd64 /usr/local/bin/kind  
+
+# If you have an existing Kind cluster with the default name, delete it
+kind delete cluster --name kind
+
+# Create a new Kind cluster with the desired name
 kind create cluster --name veriff-o11y
+
+# Install kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+# Make the kubectl binary executable and move it to a directory in your PATH
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl  
 
 # Verify cluster
 kubectl cluster-info --context kind-veriff-o11y
 
 # Deploy Metrics Server (required for resource monitoring)
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
