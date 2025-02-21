@@ -163,8 +163,5 @@ PGLTJ **ensures seamless correlation between logs, traces, and metrics**, making
 **PGLTJ is the better choice** if you want a **truly unified observability stack** that treats metrics, logs, and traces as interconnected data sources. It provides **deeper tracing (Jaeger)**, **better log-trace correlation**, and **full telemetry integration in Grafana**.
 
 If your main concern is **scalability and simplicity**, **LGTM** with Mimir is a good alternative, but it lacks **Jaeger’s deep tracing capabilities**.
-
-📢 Need help setting up PGLTJ? Let’s get started! 🚀
-
 ---
 
