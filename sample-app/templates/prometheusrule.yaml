@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-alerts
+  labels:
+    app: {{ .Release.Name }}
+    release: prometheus
+spec:
+  groups:
+  - name: {{ .Release.Name }}.rules
+    rules:
+    - alert: SampleAppHighErrorRate
+      expr: sum(rate(nginx_http_requests_total{status=~"5.."}[5m])) / sum(rate(nginx_http_requests_total[5m])) * 100 > 5
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate detected"
+        description: "{{ .Release.Name }} is returning 5xx errors > 5% (current value: {{ "{{" }} $value {{ "}}" }}%)"

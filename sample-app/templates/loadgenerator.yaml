@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-loadgen
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: loadgen
+            image: busybox
+            command:
+            - /bin/sh
+            - -c
+            - |
+              for i in $(seq 1 10); do
+                wget -q -O- http://{{ .Release.Name }}
+                sleep 2
+              done
+          restartPolicy: OnFailure
