@@ -6,6 +6,8 @@ tempo:
           endpoint: 0.0.0.0:14268
         grpc:
           endpoint: 0.0.0.0:14250
+        thrift_binary:
+          endpoint: 0.0.0.0:6832
         thrift_compact:
           endpoint: 0.0.0.0:6831
     otlp:
@@ -17,11 +19,23 @@ tempo:
   storage:
     trace:
       backend: local
-  service:
-    type: ClusterIP
-    ports:
-      otlp-grpc: 4317
-      otlp-http: 4318
-      jaeger-thrift: 14268
-      jaeger-grpc: 14250
-      jaeger-thrift-compact: 6831
+      local:
+        path: /var/tempo/traces
+  serviceGraphEnabled: true
+
+service:
+  ports:
+    - port: 3100
+      name: tempo
+    - port: 14250
+      name: jaeger-grpc
+    - port: 14268
+      name: jaeger-thrift-http
+    - port: 6831
+      name: jaeger-thrift-compact
+    - port: 6832
+      name: jaeger-thrift-binary
+    - port: 4317
+      name: otlp-grpc
+    - port: 4318
+      name: otlp-http

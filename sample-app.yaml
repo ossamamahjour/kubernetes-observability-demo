@@ -1,50 +1,33 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: sample-app
-  namespace: default
-  labels:
-    app: sample-app
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: sample-app
-  template:
-    metadata:
-      labels:
-        app: sample-app
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
-        prometheus.io/path: "/metrics"
-    spec:
-      containers:
-      - name: sample-app
-        image: jaegertracing/example-hotrod:latest
-        ports:
-        - containerPort: 8080
-          name: http
-        env:
-        - name: JAEGER_ENDPOINT
-          value: "http://tempo.monitoring:14268/api/traces"
-        - name: JAEGER_SAMPLER_TYPE
-          value: "const"
-        - name: JAEGER_SAMPLER_PARAM
-          value: "1"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: sample-app
-  namespace: default
-  labels:
-    app: sample-app
-spec:
-  selector:
-    app: sample-app
-  ports:
-  - port: 8080
-    targetPort: 8080
-    name: http
-  type: LoadBalancer
+image:
+  repository: otel/opentelemetry-collector-contrib
+  tag: "latest"
+mode: deployment
+config:
+  receivers:
+    jaeger:
+      protocols:
+        thrift_compact:
+          endpoint: "0.0.0.0:6831"
+        thrift_http:
+          endpoint: "0.0.0.0:14268"
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+  processors:
+    batch: {}
+  exporters:
+    logging:
+      logLevel: debug
+    otlp:
+      endpoint: "tempo.monitoring.svc.cluster.local:4317"
+      tls:
+        insecure: true
+  service:
+    pipelines:
+      traces:
+        receivers: [jaeger, otlp]
+        processors: [batch]
+        exporters: [logging, otlp]

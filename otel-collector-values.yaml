@@ -1,0 +1,40 @@
+mode: deployment
+config:
+  receivers:
+    jaeger:
+      protocols:
+        thrift_compact:
+          endpoint: 0.0.0.0:6831
+        thrift_http:
+          endpoint: 0.0.0.0:14268
+        grpc:
+          endpoint: 0.0.0.0:14250
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  processors:
+    batch:
+      timeout: 1s
+      send_batch_size: 1024
+
+  exporters:
+    logging:
+      loglevel: debug
+    otlp:
+      endpoint: tempo.monitoring.svc.cluster.local:4317
+      tls:
+        insecure: true
+
+  service:
+    pipelines:
+      traces:
+        receivers: [jaeger, otlp]
+        processors: [batch]
+        exporters: [logging, otlp]
+
+service:
+  type: ClusterIP
