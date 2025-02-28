@@ -1,0 +1,24 @@
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-kube-prometheus-prometheus.monitoring:9090
+      access: proxy
+      isDefault: true
+    - name: Loki
+      type: loki
+      url: http://loki.monitoring:3100
+      access: proxy
+    - name: Jaeger
+      type: jaeger
+      url: http://jaeger-query.monitoring:16686
+      access: proxy
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+service:
+  type: LoadBalancer
