@@ -1,0 +1,24 @@
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-kube-prometheus-prometheus.monitoring:9090
+      access: proxy
+      isDefault: true
+    - name: Loki
+      type: loki
+      url: http://loki.monitoring:3100
+      access: proxy
+    - name: Tempo
+      type: tempo
+      url: http://tempo.monitoring:3100
+      access: proxy
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+service:
+  type: LoadBalancer
