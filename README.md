@@ -413,11 +413,14 @@ Alert notifications can be verified through:
 
 ## Demonstration and Screenshots
 
-*Note: This section should be populated with screenshots from your actual implementation.*
-
 ### Metrics Visualization
-- Dashboard showing application and cluster resource usage
-- Prometheus targets and service discovery
+- Dashboard showing prometheus System Monitoring
+
+![Prometheus monitoring](Prometheus_monitoring.png)
+
+- Dashboard showing Prometheus Alerts Overview
+
+![Grafana dashboerd alert](grafana_dashboerd_alert.png)
 
 ### Log Analysis
 - Loki logs from the sample application

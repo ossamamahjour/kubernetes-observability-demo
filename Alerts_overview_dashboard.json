@@ -1,0 +1,557 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "gnetId": null,
+    "graphTooltip": 0,
+    "id": 11,
+    "links": [],
+    "panels": [
+      {
+        "datasource": null,
+        "gridPos": {
+          "h": 2,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 14,
+        "options": {
+          "content": "<div style=\"text-align:center; font-size: 24px; font-weight: bold;\">Alerts Overview</div>",
+          "mode": "html"
+        },
+        "pluginVersion": "7.3.7",
+        "type": "text"
+      },
+      {
+        "datasource": "Prometheus",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": null,
+              "filterable": false
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "State"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "from": "firing",
+                      "id": 1,
+                      "text": "FIRING",
+                      "to": "",
+                      "type": 1,
+                      "value": "firing"
+                    },
+                    {
+                      "from": "pending",
+                      "id": 2,
+                      "text": "PENDING",
+                      "to": "",
+                      "type": 1,
+                      "value": "pending"
+                    }
+                  ]
+                },
+                {
+                  "id": "custom.width",
+                  "value": 114
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "yellow",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": "firing"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Severity"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "from": "critical",
+                      "id": 1,
+                      "text": "CRITICAL",
+                      "to": "",
+                      "type": 1,
+                      "value": "critical"
+                    },
+                    {
+                      "from": "warning",
+                      "id": 2,
+                      "text": "WARNING",
+                      "to": "",
+                      "type": 1,
+                      "value": "warning"
+                    },
+                    {
+                      "from": "info",
+                      "id": 3,
+                      "text": "INFO",
+                      "to": "",
+                      "type": 1,
+                      "value": "info"
+                    }
+                  ]
+                },
+                {
+                  "id": "custom.width",
+                  "value": 126
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "yellow",
+                        "value": "warning"
+                      },
+                      {
+                        "color": "red",
+                        "value": "critical"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 9,
+          "w": 24,
+          "x": 0,
+          "y": 2
+        },
+        "id": 2,
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "State"
+            }
+          ]
+        },
+        "pluginVersion": "7.3.7",
+        "targets": [
+          {
+            "expr": "ALERTS",
+            "format": "table",
+            "instant": true,
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+          }
+        ],
+        "title": "Currently Active Alerts",
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true,
+                "__name__": true,
+                "container": true,
+                "endpoint": true,
+                "instance": true,
+                "job": true,
+                "namespace": true,
+                "pod": true,
+                "prometheus": true,
+                "service": true,
+                "Value": true
+              },
+              "indexByName": {
+                "Time": 0,
+                "Value": 15,
+                "__name__": 2,
+                "alertname": 3,
+                "alertstate": 4,
+                "app": 5,
+                "container": 14,
+                "description": 7,
+                "endpoint": 13,
+                "instance": 12,
+                "job": 8,
+                "namespace": 11,
+                "pod": 10,
+                "prometheus": 16,
+                "service": 9,
+                "severity": 6,
+                "summary": 1
+              },
+              "renameByName": {
+                "alertname": "Alert Name",
+                "alertstate": "State",
+                "app": "Application",
+                "description": "Description",
+                "severity": "Severity",
+                "summary": "Summary"
+              }
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "Prometheus",
+        "description": "Shows the current memory usage vs the alert threshold value",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {}
+          },
+          "overrides": []
+        },
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 11
+        },
+        "hiddenSeries": false,
+        "id": 4,
+        "legend": {
+          "avg": false,
+          "current": true,
+          "max": false,
+          "min": false,
+          "show": true,
+          "total": false,
+          "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+          "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "7.3.7",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+          {
+            "expr": "sum(container_memory_usage_bytes{namespace=\"default\", pod=~\"sample-app-.*\"}) / sum(node_memory_MemTotal_bytes)",
+            "interval": "",
+            "legendFormat": "Current Memory Usage",
+            "refId": "A"
+          },
+          {
+            "expr": "0.5",
+            "interval": "",
+            "legendFormat": "Alert Threshold (50%)",
+            "refId": "B"
+          }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "App Memory Usage vs Alert Threshold",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+          "buckets": null,
+          "mode": "time",
+          "name": null,
+          "show": true,
+          "values": []
+        },
+        "yaxes": [
+          {
+            "format": "percentunit",
+            "label": null,
+            "logBase": 1,
+            "max": "1",
+            "min": "0",
+            "show": true
+          },
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }
+        ],
+        "yaxis": {
+          "align": false,
+          "alignLevel": null
+        }
+      },
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "Prometheus",
+        "description": "Shows the current cluster memory usage vs the alert threshold value",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {}
+          },
+          "overrides": []
+        },
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 11
+        },
+        "hiddenSeries": false,
+        "id": 6,
+        "legend": {
+          "avg": false,
+          "current": true,
+          "max": false,
+          "min": false,
+          "show": true,
+          "total": false,
+          "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+          "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "7.3.7",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+          {
+            "expr": "(sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes)",
+            "interval": "",
+            "legendFormat": "Current Cluster Memory",
+            "refId": "A"
+          },
+          {
+            "expr": "0.7",
+            "interval": "",
+            "legendFormat": "Alert Threshold (70%)",
+            "refId": "B"
+          }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Cluster Memory Usage vs Alert Threshold",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+          "buckets": null,
+          "mode": "time",
+          "name": null,
+          "show": true,
+          "values": []
+        },
+        "yaxes": [
+          {
+            "format": "percentunit",
+            "label": null,
+            "logBase": 1,
+            "max": "1",
+            "min": "0",
+            "show": true
+          },
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }
+        ],
+        "yaxis": {
+          "align": false,
+          "alignLevel": null
+        }
+      },
+      {
+        "datasource": "Prometheus",
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {},
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 0.5
+                },
+                {
+                  "color": "red",
+                  "value": 0.7
+                }
+              ]
+            },
+            "unit": "percentunit"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 19
+        },
+        "id": 10,
+        "options": {
+          "displayMode": "gradient",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true
+        },
+        "pluginVersion": "7.3.7",
+        "targets": [
+          {
+            "expr": "sum(container_memory_usage_bytes{namespace=\"default\", pod=~\"sample-app-.*\"}) / sum(node_memory_MemTotal_bytes)",
+            "instant": false,
+            "interval": "",
+            "legendFormat": "App Memory",
+            "refId": "A"
+          },
+          {
+            "expr": "(sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes)",
+            "interval": "",
+            "legendFormat": "Cluster Memory",
+            "refId": "B"
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Memory Usage vs Alert Thresholds",
+        "type": "bargauge"
+      }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 26,
+    "style": "dark",
+    "tags": [
+      "prometheus",
+      "alerting"
+    ],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-30m",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Alerts Overview",
+    "uid": "prom-alerts-simple",
+    "version": 1
+  }
