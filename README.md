@@ -110,7 +110,40 @@ helm install jaeger jaegertracing/jaeger \
   --set storage.type=memory
 ```
 
-### 8. Configure AlertManager
+### 8. Deploy Grafana
+Create a values file for Grafana:
+
+```bash
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-kube-prometheus-prometheus.monitoring:9090
+      access: proxy
+      isDefault: true
+    - name: Loki
+      type: loki
+      url: http://loki.monitoring:3100
+      access: proxy
+    - name: Jaeger
+      type: jaeger
+      url: http://jaeger-query.monitoring:16686
+      access: proxy
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+service:
+  type: LoadBalancer
+
+helm install grafana grafana/grafana \
+  --namespace monitoring \
+  --values grafana-values.yaml
+```
+### 9. Configure AlertManager
 Create a file named `alertmanager-config.yaml`:
 
 ```yaml
@@ -144,7 +177,7 @@ Apply the configuration:
 kubectl apply -f alertmanager-config.yaml
 ```
 
-### 9. Create Alert Rules
+### 10. Create Alert Rules
 Create a file named `prometheus-rules.yaml`:
 
 ```yaml
@@ -181,42 +214,6 @@ spec:
 Apply the rules:
 ```bash
 kubectl apply -f prometheus-rules.yaml
-```
-
-### 10. Deploy Grafana
-Create a values file for Grafana:
-
-```bash
-cat <<EOF > grafana-values.yaml
-datasources:
-  datasources.yaml:
-    apiVersion: 1
-    datasources:
-    - name: Prometheus
-      type: prometheus
-      url: http://prometheus-kube-prometheus-prometheus.monitoring:9090
-      access: proxy
-      isDefault: true
-    - name: Loki
-      type: loki
-      url: http://loki.monitoring:3100
-      access: proxy
-    - name: Jaeger
-      type: jaeger
-      url: http://jaeger-query.monitoring:16686
-      access: proxy
-
-persistence:
-  enabled: true
-  size: 5Gi
-
-service:
-  type: LoadBalancer
-EOF
-
-helm install grafana grafana/grafana \
-  --namespace monitoring \
-  --values grafana-values.yaml
 ```
 
 ### 11. Deploy Sample Application
