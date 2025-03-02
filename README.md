@@ -185,8 +185,10 @@ helm install grafana grafana/grafana \
 ```
 
 ### 9. Deploy Sample Application
+
+Create the application manifest sample-app.yaml
+
 ```bash
-cat <<EOF > sample-app.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -223,6 +225,8 @@ spec:
           value: "const"
         - name: JAEGER_SAMPLER_PARAM
           value: "1"
+        - name: JAEGER_SERVICE_NAME
+          value: "hotrod-frontend"
 ---
 apiVersion: v1
 kind: Service
@@ -258,8 +262,10 @@ spec:
   - port: http
     path: /metrics
     interval: 10s
-EOF
+```
+Deploy the sample app 
 
+```bash
 kubectl apply -f sample-app.yaml
 ```
 
@@ -290,19 +296,30 @@ stringData:
   alertmanager.yaml: |
     global:
       resolve_timeout: 5m
-    
+
     route:
-      group_by: ['alertname', 'job']
+      # Group alerts by application and alertname
+      group_by: ['app', 'alertname']
+      
+      # Wait 30s to buffer alerts of the same group before sending
       group_wait: 30s
+      
+      # Wait 5m before sending a notification for new alerts that are added to a group
       group_interval: 5m
-      repeat_interval: 4h
-      receiver: 'webhook-notifications'
-    
+      
+      # Wait 3h before sending a notification again if it has been already sent
+      repeat_interval: 3h
+      
+      # Default receiver
+      receiver: 'null'
+
+    # This receiver does nothing (no notifications)
     receivers:
-    - name: 'webhook-notifications'
-      webhook_configs:
-      - url: 'YOUR_WEBHOOK_URL'
-        send_resolved: true
+    - name: 'null'
+
+    # Define detailed information about the alert
+    templates:
+    - '/etc/alertmanager/config/*.tmpl'
 ```
 
 Apply the configuration:
@@ -317,31 +334,45 @@ Create a file named `prometheus-rules.yaml`:
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: memory-usage-alerts
+  name: kubernetes-alerts
   namespace: monitoring
   labels:
     release: prometheus
 spec:
   groups:
-  - name: memory.rules
+  - name: kubernetes.rules
     rules:
     - alert: HighAppMemoryUsage
-      expr: sum(container_memory_usage_bytes{namespace="default", pod=~"sample-app-.*"}) / sum(node_memory_MemTotal_bytes) > 0.7
-      for: 5m
+      #expr: sum(container_memory_usage_bytes{namespace="default", pod=~"sample-app-.*"}) / sum(node_memory_MemTotal_bytes) > 0.5
+      expr: sum(container_memory_usage_bytes{namespace="default", pod=~"sample-app-.*"}) / sum(node_memory_MemTotal_bytes) > 0.01
+      #for: 5m
+      for: 1m
       labels:
         severity: warning
+        app: sample-app
       annotations:
         summary: "High application memory usage"
-        description: "Application is using more than 70% of total cluster memory for over 5 minutes."
+        description: "Application is using more than 50% of total cluster memory for over 5 minutes."
     
     - alert: HighClusterMemoryUsage
-      expr: (sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes) > 0.8
+      expr: (sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes) > 0.7
       for: 5m
       labels:
         severity: critical
+        app: kubernetes
       annotations:
         summary: "High cluster memory usage"
-        description: "Cluster memory usage is above 80% for over 5 minutes."
+        description: "Cluster memory usage is above 70% for over 5 minutes."
+        
+    - alert: PodRestarting
+      expr: increase(kube_pod_container_status_restarts_total{namespace="default"}[15m]) > 3
+      for: 10m
+      labels:
+        severity: warning
+        app: sample-app
+      annotations:
+        summary: "Pod restarting frequently"
+        description: "Pod {{ $labels.pod }} has restarted more than 3 times in the last 15 minutes."
 ```
 
 Apply the rules:
@@ -349,6 +380,23 @@ Apply the rules:
 kubectl apply -f prometheus-rules.yaml
 ```
 
+### 13.Update Prometheus Configuration
+
+Create values file for updating Prometheus
+
+```bash
+alertmanager:
+  enabled: true
+  config:
+    existingSecret: alertmanager-config
+    existingSecretKey: alertmanager.yaml
+```
+# Update Prometheus with the new values
+```bash
+helm upgrade prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --values prometheus-values.yaml
+```
 ## Alert Configuration
 
 The observability solution includes AlertManager for managing alerts. The following alerts have been configured:
