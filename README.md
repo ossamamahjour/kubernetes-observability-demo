@@ -423,11 +423,11 @@ Alert notifications can be verified through:
 ![Grafana_screen2](Grafana_screen2.png)
 
 ### Metrics Visualization
-- Dashboard showing prometheus System Monitoring
+- Dashboard showing prometheus system monitoring
 
 ![Prometheus monitoring](Prometheus_monitoring.png)
 
-- Dashboard showing Prometheus Alerts Overview
+- Dashboard showing prometheus alerts overview
 
 ![Grafana dashboerd alert](grafana_dashboerd_alert.png)
 
