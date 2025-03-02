@@ -32,6 +32,43 @@ The solution architecture follows a layered approach:
 
 Data flows from the application through the collection agents to storage systems and is visualized in Grafana dashboards.
 
+## Observability Stack Justification
+
+### Why This Stack?
+
+1. **Prometheus + AlertManager**:
+   - Industry-standard metrics solution built for Kubernetes
+   - Pull-based model works well with ephemeral containers
+   - Rich query language allows flexible metric analysis
+   - AlertManager provides robust alert routing capabilities
+   - Extensive community support and integration options
+
+2. **Loki + Promtail**:
+   - Designed specifically for Kubernetes environments
+   - Uses the same label-based approach as Prometheus, providing consistency
+   - Efficient storage model with separation of metadata and log content
+   - Straightforward integration with Grafana and Prometheus ecosystem
+
+3. **Jaeger**:
+   - Native support for distributed tracing with OpenTracing compatibility
+   - Optimized for Kubernetes deployments
+   - Provides service dependency analysis
+   - Works well with the HotROD demo application
+
+4. **Grafana**:
+   - Unified visualization of all three observability pillars
+   - Rich plugin ecosystem and dashboard creation capabilities
+   - Support for alerts based on metrics
+   - Seamless integration with Prometheus, Loki, and Jaeger
+
+5. **HotROD Demo Application**:
+   - Pre-instrumented to emit metrics, logs, and traces
+   - Demonstrates a realistic microservices architecture
+   - Created by the Jaeger team, ensuring proper tracing implementation
+   - Provides meaningful telemetry data for dashboard visualization
+
+This stack represents a comprehensive, cloud-native observability solution that can scale from development environments to production deployments, making it ideal for the assessment requirements.
+
 ## Components
 
 ### Kubernetes Cluster
@@ -138,85 +175,16 @@ persistence:
 
 service:
   type: LoadBalancer
+```
+Deploy Grafana with the value file 
 
+```bash
 helm install grafana grafana/grafana \
   --namespace monitoring \
   --values grafana-values.yaml
 ```
-### 9. Configure AlertManager
-Create a file named `alertmanager-config.yaml`:
 
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: alertmanager-config
-  namespace: monitoring
-type: Opaque
-stringData:
-  alertmanager.yaml: |
-    global:
-      resolve_timeout: 5m
-    
-    route:
-      group_by: ['alertname', 'job']
-      group_wait: 30s
-      group_interval: 5m
-      repeat_interval: 4h
-      receiver: 'webhook-notifications'
-    
-    receivers:
-    - name: 'webhook-notifications'
-      webhook_configs:
-      - url: 'YOUR_WEBHOOK_URL'
-        send_resolved: true
-```
-
-Apply the configuration:
-```bash
-kubectl apply -f alertmanager-config.yaml
-```
-
-### 10. Create Alert Rules
-Create a file named `prometheus-rules.yaml`:
-
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: memory-usage-alerts
-  namespace: monitoring
-  labels:
-    release: prometheus
-spec:
-  groups:
-  - name: memory.rules
-    rules:
-    - alert: HighAppMemoryUsage
-      expr: sum(container_memory_usage_bytes{namespace="default", pod=~"sample-app-.*"}) / sum(node_memory_MemTotal_bytes) > 0.7
-      for: 5m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High application memory usage"
-        description: "Application is using more than 70% of total cluster memory for over 5 minutes."
-    
-    - alert: HighClusterMemoryUsage
-      expr: (sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes) > 0.8
-      for: 5m
-      labels:
-        severity: critical
-      annotations:
-        summary: "High cluster memory usage"
-        description: "Cluster memory usage is above 80% for over 5 minutes."
-```
-
-Apply the rules:
-```bash
-kubectl apply -f prometheus-rules.yaml
-```
-
-### 11. Deploy Sample Application
+### 9. Deploy Sample Application
 ```bash
 cat <<EOF > sample-app.yaml
 apiVersion: apps/v1
@@ -295,7 +263,7 @@ EOF
 kubectl apply -f sample-app.yaml
 ```
 
-### 12. Import Grafana Dashboard
+### 10. Import Grafana Dashboard
 Retrieve the Grafana admin password:
 ```bash
 kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode
@@ -308,9 +276,82 @@ kubectl port-forward -n monitoring svc/grafana 3000:80
 
 Import the dashboard provided in the `grafana-dashboard.json` file.
 
+### 11. Configure AlertManager
+Create a file named `alertmanager-config.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+    
+    route:
+      group_by: ['alertname', 'job']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: 'webhook-notifications'
+    
+    receivers:
+    - name: 'webhook-notifications'
+      webhook_configs:
+      - url: 'YOUR_WEBHOOK_URL'
+        send_resolved: true
+```
+
+Apply the configuration:
+```bash
+kubectl apply -f alertmanager-config.yaml
+```
+
+### 12. Create Alert Rules
+Create a file named `prometheus-rules.yaml`:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: memory-usage-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+  - name: memory.rules
+    rules:
+    - alert: HighAppMemoryUsage
+      expr: sum(container_memory_usage_bytes{namespace="default", pod=~"sample-app-.*"}) / sum(node_memory_MemTotal_bytes) > 0.7
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High application memory usage"
+        description: "Application is using more than 70% of total cluster memory for over 5 minutes."
+    
+    - alert: HighClusterMemoryUsage
+      expr: (sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes) > 0.8
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High cluster memory usage"
+        description: "Cluster memory usage is above 80% for over 5 minutes."
+```
+
+Apply the rules:
+```bash
+kubectl apply -f prometheus-rules.yaml
+```
+
 ## Alert Configuration
 
-The observability solution includes AlertManager for managing alerts and notifications. The following alerts have been configured:
+The observability solution includes AlertManager for managing alerts. The following alerts have been configured:
 
 1. **High Application Memory Usage**: Triggers when the application's memory usage exceeds 70% of the total node memory for more than 5 minutes. This alert helps prevent application instability due to memory constraints.
 
@@ -319,43 +360,6 @@ The observability solution includes AlertManager for managing alerts and notific
 Alert notifications can be verified through:
 - AlertManager UI: `kubectl port-forward svc/prometheus-kube-prometheus-alertmanager 9093:9093 -n monitoring`
 - Webhook notifications (configured in AlertManager)
-
-## Observability Stack Justification
-
-### Why This Stack?
-
-1. **Prometheus + AlertManager**:
-   - Industry-standard metrics solution built for Kubernetes
-   - Pull-based model works well with ephemeral containers
-   - Rich query language allows flexible metric analysis
-   - AlertManager provides robust alert routing capabilities
-   - Extensive community support and integration options
-
-2. **Loki + Promtail**:
-   - Designed specifically for Kubernetes environments
-   - Uses the same label-based approach as Prometheus, providing consistency
-   - Efficient storage model with separation of metadata and log content
-   - Straightforward integration with Grafana and Prometheus ecosystem
-
-3. **Jaeger**:
-   - Native support for distributed tracing with OpenTracing compatibility
-   - Optimized for Kubernetes deployments
-   - Provides service dependency analysis
-   - Works well with the HotROD demo application
-
-4. **Grafana**:
-   - Unified visualization of all three observability pillars
-   - Rich plugin ecosystem and dashboard creation capabilities
-   - Support for alerts based on metrics
-   - Seamless integration with Prometheus, Loki, and Jaeger
-
-5. **HotROD Demo Application**:
-   - Pre-instrumented to emit metrics, logs, and traces
-   - Demonstrates a realistic microservices architecture
-   - Created by the Jaeger team, ensuring proper tracing implementation
-   - Provides meaningful telemetry data for dashboard visualization
-
-This stack represents a comprehensive, cloud-native observability solution that can scale from development environments to production deployments, making it ideal for the assessment requirements.
 
 ## Demonstration and Screenshots
 
