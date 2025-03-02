@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'ossama.mahjour97@@gmail.com'  # Use your sending email
+      smtp_auth_username: 'ossama.mahjour97@@gmail.com'  # Use your Gmail
+      smtp_auth_password: 'yacj gsyj wwoh dsps'  # Generate an app password in Google account
+      smtp_require_tls: true
+    
+    route:
+      group_by: ['alertname', 'job']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: 'email-notifications'
+    
+    receivers:
+    - name: 'email-notifications'
+      email_configs:
+      - to: 'ossama.mahjour97@gmail.com'
+        send_resolved: true

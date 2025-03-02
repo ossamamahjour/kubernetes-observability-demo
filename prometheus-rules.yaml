@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: memory-usage-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+  - name: memory.rules
+    rules:
+    - alert: HighAppMemoryUsage
+      expr: sum(container_memory_usage_bytes{namespace="default", pod=~"sample-app-.*"}) / sum(node_memory_MemTotal_bytes) > 0.7
+      #expr: sum(container_memory_usage_bytes{namespace="default", pod=~"sample-app-.*"}) / sum(node_memory_MemTotal_bytes) > 0.01
+      for: 5m
+      #for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High application memory usage"
+        description: "Application is using more than 70% of total cluster memory for over 5 minutes."
+    
+    - alert: HighClusterMemoryUsage
+      expr: (sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes) > 0.8
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High cluster memory usage"
+        description: "Cluster memory usage is above 80% for over 5 minutes."

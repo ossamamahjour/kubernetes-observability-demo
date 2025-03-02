@@ -1,167 +1,462 @@
-# Veriff Observability (O11Y) Engineer Test Task
-
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.27+-blue?logo=kubernetes)
-![Kind](https://img.shields.io/badge/Kind-v0.20+-blue?logo=kubernetes)
-![Prometheus](https://img.shields.io/badge/Prometheus-2.45+-orange?logo=prometheus)
-![Grafana](https://img.shields.io/badge/Grafana-10.1+-orange?logo=grafana)
-
-A solution demonstrating Kubernetes cluster setup with **Kind**, observability stack deployment, application monitoring, and alerting for the Veriff O11Y Engineer Test Task.
-
----
+# Veriff Observability (O11Y) Assessment
 
 ## Table of Contents
-- [Objective](#objective)
-- [Solution Overview](#solution-overview)
-- [Prerequisites](#prerequisites)
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Components](#components)
 - [Setup Instructions](#setup-instructions)
-- [Deliverables](#deliverables)
+- [Alert Configuration](#alert-configuration)
+- [Observability Stack Justification](#observability-stack-justification)
+- [Demonstration and Screenshots](#demonstration-and-screenshots)
 - [Troubleshooting](#troubleshooting)
-- [License](#license)
+- [Conclusion](#conclusion)
 
----
+## Overview
 
-## Objective
-This repository fulfills the requirements of the Veriff O11Y Engineer Test Task, including:
-1. ✅ Kubernetes cluster creation with **Kind** and observability support.
-2. ✅ Deployment of a telemetry stack (logs, metrics, traces).
-3. ✅ Deployment of a sample application with observable telemetry.
-4. ✅ Monitoring configuration with alerts.
-5. ✅ Comprehensive documentation for reproducibility.
+This project demonstrates a comprehensive observability solution that collects, stores, and visualizes telemetry data from a Kubernetes environment. The implementation follows the three pillars of observability: metrics, logs, and traces, providing a complete monitoring solution for containerized applications.
 
----
+## Architecture
+```mermaid
+graph TD
+    subgraph "Kind Kubernetes Cluster"
+        subgraph "Monitoring Namespace"
+            subgraph "Metrics Collection"
+                prometheus[Prometheus]
+                alertmanager[AlertManager]
+                serviceMonitor[ServiceMonitor]
+                prometheus --- alertmanager
+                prometheus --- serviceMonitor
+            end
+            
+            subgraph "Log Collection"
+                loki[Loki]
+                promtail[Promtail]
+                loki --- promtail
+            end
+            
+            subgraph "Trace Collection"
+                jaeger[Jaeger Query]
+                jaegerAgent[Jaeger Agent]
+                jaeger --- jaegerAgent
+            end
+            
+            subgraph "Visualization"
+                grafana[Grafana]
+                grafana --- prometheus
+                grafana --- loki
+                grafana --- jaeger
+            end
+            
+            alertmanager --- webhook[Webhook Notification]
+        end
+        
+        subgraph "Default Namespace"
+            app[HotROD Sample App]
+            app --- serviceMonitor
+            app --- promtail
+            app --- jaegerAgent
+        end
+    end
+    
+    user[User] --- grafana
+    user --- app
+    alertmanager --- admin[Administrator]
+    
+    classDef alert fill:#f96,stroke:#333,stroke-width:2px
+    classDef app fill:#9cf,stroke:#333,stroke-width:2px
+    classDef store fill:#ccf,stroke:#333,stroke-width:2px
+    classDef visual fill:#cfc,stroke:#333,stroke-width:2px
+    
+    class prometheus,loki,jaeger store
+    class grafana visual
+    class app app
+    class alertmanager alert
 
-## Solution Overview
-### Architecture Diagram
-![Architecture Diagram](images/architecture.png) *(Replace with your diagram)*
+The solution architecture follows a layered approach:
 
-**Chosen Tools**:
-- **Kubernetes**: Kind (local cluster in Docker)
-- **Observability Stack**: Prometheus (metrics), Loki (logs), Grafana (visualization), and OpenTelemetry (traces).
-- **Sample Application**: Nginx web server with custom instrumentation.
+1. **Infrastructure Layer**: Kind Kubernetes cluster running in WSL
+2. **Telemetry Collection Layer**:
+   - Prometheus for metrics collection
+   - Loki with Promtail for log aggregation
+   - Jaeger for distributed tracing
+3. **Visualization Layer**: Grafana for unified visualization
+4. **Alerting Layer**: AlertManager for notifications and alert management
+5. **Application Layer**: Sample HotROD application that emits all three types of telemetry
 
----
+Data flows from the application through the collection agents to storage systems and is visualized in Grafana dashboards.
 
-## Prerequisites
-- [ ] Docker Desktop (with Kind support)
-- [ ] `kind`, `kubectl`, and `helm` CLI tools
-- [ ] 4+ GB RAM allocated to Docker
+## Components
 
----
+### Kubernetes Cluster
+- **Kind**: Local Kubernetes cluster running in Windows Subsystem for Linux (WSL)
+
+### Metrics Stack
+- **Prometheus**: Time-series database for collecting and storing metrics
+- **kube-state-metrics**: Generates metrics about Kubernetes objects
+- **AlertManager**: Handles alerts and routes notifications
+
+### Logging Stack
+- **Loki**: Log aggregation system designed for Kubernetes
+- **Promtail**: Agent that ships logs to Loki
+
+### Tracing Stack
+- **Jaeger**: End-to-end distributed tracing system
+- **Jaeger Agent**: Receives spans and forwards to collectors
+
+### Visualization
+- **Grafana**: Unified visualization platform for metrics, logs, and traces
+
+### Sample Application
+- **Jaeger HotROD**: Demo application that simulates a ride-sharing service with multiple microservices, instrumented to emit metrics, logs, and traces
 
 ## Setup Instructions
-### 1. Cluster Setup with Kind
+
+### 1. Prerequisites
+- Docker installed
+- Kind installed
+- kubectl installed
+- Helm installed
+- WSL (Windows Subsystem for Linux) if running on Windows
+
+### 2. Create Kind Cluster
 ```bash
-# Update package index
-sudo apt update 
-
-# Install Docker
-sudo apt install docker.io -y 
-
-# Download Kind
-wget https://github.com/kubernetes-sigs/kind/releases/download/v0.27.0/kind-linux-amd64
-
-# Make the Kind binary executable
-chmod +x kind-linux-amd64                                                                                      
-
-# Move the Kind binary to a directory in my local PATH
-mv kind-linux-amd64 /usr/local/bin/kind  
-
-# Create Kind cluster
 kind create cluster --name veriff-o11y
-
-# Install kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-
-# Make the kubectl binary executable and move it to a directory in my PATH
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl  
-
 ```
 
-# 📌 Observability Stack: PGLTJ vs. LGTM
+### 3. Add Helm Repositories
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
+helm repo update
+```
 
-## 📖 Overview
+### 4. Create Monitoring Namespace
+```bash
+kubectl create namespace monitoring
+```
 
-Observability is crucial for monitoring and troubleshooting modern distributed systems. This document compares the **PGLTJ** (Prometheus, Grafana, Loki, Tempo, Jaeger) stack with **LGTM** (Loki, Grafana, Tempo, Mimir) and explains why **PGLTJ provides a more unified observability solution** by treating metrics, logs, and traces as interrelated, not independent.
+### 5. Deploy Prometheus Stack
+```bash
+helm install prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --set grafana.enabled=false \
+  --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+  --set prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues=false
+```
 
+### 6. Deploy Loki for Log Collection
+```bash
+helm install loki grafana/loki-stack \
+  --namespace monitoring \
+  --set promtail.enabled=true \
+  --set loki.persistence.enabled=true \
+  --set loki.persistence.size=10Gi
+```
+
+### 7. Deploy Jaeger for Tracing
+```bash
+helm install jaeger jaegertracing/jaeger \
+  --namespace monitoring \
+  --set provisionDataStore.cassandra=false \
+  --set allInOne.enabled=true \
+  --set storage.type=memory
+```
+
+### 8. Configure AlertManager
+Create a file named `alertmanager-config.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+    
+    route:
+      group_by: ['alertname', 'job']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: 'webhook-notifications'
+    
+    receivers:
+    - name: 'webhook-notifications'
+      webhook_configs:
+      - url: 'YOUR_WEBHOOK_URL'
+        send_resolved: true
+```
+
+Apply the configuration:
+```bash
+kubectl apply -f alertmanager-config.yaml
+```
+
+### 9. Create Alert Rules
+Create a file named `prometheus-rules.yaml`:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: memory-usage-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+  - name: memory.rules
+    rules:
+    - alert: HighAppMemoryUsage
+      expr: sum(container_memory_usage_bytes{namespace="default", pod=~"sample-app-.*"}) / sum(node_memory_MemTotal_bytes) > 0.7
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High application memory usage"
+        description: "Application is using more than 70% of total cluster memory for over 5 minutes."
+    
+    - alert: HighClusterMemoryUsage
+      expr: (sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes) > 0.8
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High cluster memory usage"
+        description: "Cluster memory usage is above 80% for over 5 minutes."
+```
+
+Apply the rules:
+```bash
+kubectl apply -f prometheus-rules.yaml
+```
+
+### 10. Deploy Grafana
+Create a values file for Grafana:
+
+```bash
+cat <<EOF > grafana-values.yaml
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-kube-prometheus-prometheus.monitoring:9090
+      access: proxy
+      isDefault: true
+    - name: Loki
+      type: loki
+      url: http://loki.monitoring:3100
+      access: proxy
+    - name: Jaeger
+      type: jaeger
+      url: http://jaeger-query.monitoring:16686
+      access: proxy
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+service:
+  type: LoadBalancer
+EOF
+
+helm install grafana grafana/grafana \
+  --namespace monitoring \
+  --values grafana-values.yaml
+```
+
+### 11. Deploy Sample Application
+```bash
+cat <<EOF > sample-app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app
+  namespace: default
+  labels:
+    app: sample-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sample-app
+  template:
+    metadata:
+      labels:
+        app: sample-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: sample-app
+        image: jaegertracing/example-hotrod:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: JAEGER_AGENT_HOST
+          value: "jaeger-agent.monitoring.svc.cluster.local"
+        - name: JAEGER_AGENT_PORT
+          value: "6831"
+        - name: JAEGER_SAMPLER_TYPE
+          value: "const"
+        - name: JAEGER_SAMPLER_PARAM
+          value: "1"
 ---
-
-## 🏆 Why PGLTJ?
-
-The best observability system should **correlate telemetry types** (metrics, logs, and traces) rather than treating them separately.
-
-For example:
-
-- A log entry in **Loki** could reference a **traceId** in **Jaeger/Tempo**.
-- A **trace event** could impact **Prometheus metrics**.
-- Unified observability simplifies troubleshooting and improves system insights.
-
-PGLTJ **ensures seamless correlation between logs, traces, and metrics**, making it superior to stacks like LGTM.
-
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-app
+  namespace: default
+  labels:
+    app: sample-app
+spec:
+  selector:
+    app: sample-app
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  type: LoadBalancer
 ---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sample-app-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: sample-app
+  namespaceSelector:
+    matchNames:
+      - default
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 10s
+EOF
 
-## 🔹 Stack Comparison
+kubectl apply -f sample-app.yaml
+```
 
-| Feature                 | **PGLTJ (Prometheus, Grafana, Loki, Tempo, Jaeger)** | **LGTM (Loki, Grafana, Tempo, Mimir)**  |
-| ----------------------- | ---------------------------------------------------- | --------------------------------------- |
-| **Metrics Storage**     | ✅ Prometheus                                         | ✅ Mimir (Scales better than Prometheus) |
-| **Logs Storage**        | ✅ Loki                                               | ✅ Loki                                  |
-| **Traces Storage**      | ✅ Tempo / Jaeger                                     | ✅ Tempo (No Jaeger)                     |
-| **Visualization**       | ✅ Grafana                                            | ✅ Grafana                               |
-| **Scalability**         | ⭐⭐⭐ Medium (Prometheus has limits)                   | ⭐⭐⭐⭐ High (Mimir scales better)         |
-| **Ease of Setup**       | ⭐⭐ Medium                                            | ⭐⭐⭐ Easier (Fewer components)           |
-| **Tracing Support**     | ✅ Tempo + Jaeger                                     | ✅ Tempo (Simpler, no Jaeger)            |
-| **Resource Efficiency** | ⭐⭐ Medium (Jaeger adds complexity)                   | ⭐⭐⭐ More efficient (No Jaeger overhead) |
+### 12. Import Grafana Dashboard
+Retrieve the Grafana admin password:
+```bash
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+```
 
----
+Access Grafana:
+```bash
+kubectl port-forward -n monitoring svc/grafana 3000:80
+```
 
-## 🔍 Key Differences
+Import the dashboard provided in the `grafana-dashboard.json` file.
 
-### ✅ **PGLTJ Benefits** (Why It’s Better?)
+## Alert Configuration
 
-1. **Correlates Metrics, Logs, and Traces**
+The observability solution includes AlertManager for managing alerts and notifications. The following alerts have been configured:
 
-   - **Prometheus (metrics), Loki (logs), and Tempo/Jaeger (traces)** are fully integrated.
-   - Example: Click on a **log entry** → View its **related trace** → Check affected **metrics**.
+1. **High Application Memory Usage**: Triggers when the application's memory usage exceeds 70% of the total node memory for more than 5 minutes. This alert helps prevent application instability due to memory constraints.
 
-2. **Deep Trace & Log Context**
+2. **High Cluster Memory Usage**: Triggers when the cluster's overall memory usage exceeds 80% for more than 5 minutes. This critical alert indicates potential resource exhaustion at the infrastructure level.
 
-   - **Jaeger provides advanced tracing** (better than Tempo alone in LGTM).
-   - **Loki logs include traceId/spanId**, enabling **quick navigation**.
+Alert notifications can be verified through:
+- AlertManager UI: `kubectl port-forward svc/prometheus-kube-prometheus-alertmanager 9093:9093 -n monitoring`
+- Webhook notifications (configured in AlertManager)
 
-3. **Unified Querying & Visualization**
+## Observability Stack Justification
 
-   - **Grafana integrates all telemetry types in a single dashboard**.
-   - No need to switch tools for logs, traces, and metrics.
+### Why This Stack?
 
-4. **More Flexible Tracing**
+1. **Prometheus + AlertManager**:
+   - Industry-standard metrics solution built for Kubernetes
+   - Pull-based model works well with ephemeral containers
+   - Rich query language allows flexible metric analysis
+   - AlertManager provides robust alert routing capabilities
+   - Extensive community support and integration options
 
-   - **PGLTJ supports both Tempo & Jaeger**, unlike LGTM (Tempo only).
-   - **Jaeger offers deeper trace analysis** for complex debugging.
+2. **Loki + Promtail**:
+   - Designed specifically for Kubernetes environments
+   - Uses the same label-based approach as Prometheus, providing consistency
+   - Efficient storage model with separation of metadata and log content
+   - Straightforward integration with Grafana and Prometheus ecosystem
 
----
+3. **Jaeger**:
+   - Native support for distributed tracing with OpenTracing compatibility
+   - Optimized for Kubernetes deployments
+   - Provides service dependency analysis
+   - Works well with the HotROD demo application
 
-## 🚀 When to Choose PGLTJ vs. LGTM?
+4. **Grafana**:
+   - Unified visualization of all three observability pillars
+   - Rich plugin ecosystem and dashboard creation capabilities
+   - Support for alerts based on metrics
+   - Seamless integration with Prometheus, Loki, and Jaeger
 
-### **Use PGLTJ if:**
+5. **HotROD Demo Application**:
+   - Pre-instrumented to emit metrics, logs, and traces
+   - Demonstrates a realistic microservices architecture
+   - Created by the Jaeger team, ensuring proper tracing implementation
+   - Provides meaningful telemetry data for dashboard visualization
 
-✔ You need **full correlation** between metrics, logs, and traces.
-✔ You require **advanced distributed tracing (Jaeger support)**.
-✔ You want a **deep observability stack** for debugging and performance analysis.
-✔ Your workload is **small-to-medium** scale and you don't need extreme metric scalability.
+This stack represents a comprehensive, cloud-native observability solution that can scale from development environments to production deployments, making it ideal for the assessment requirements.
 
-### **Use LGTM if:**
+## Demonstration and Screenshots
 
-✔ You need **better scalability** (Mimir scales better than Prometheus).
-✔ You want a **simpler setup** with fewer components.
-✔ You **don’t need advanced Jaeger tracing**, just basic distributed traces with Tempo.
+*Note: This section should be populated with screenshots from your actual implementation.*
 
----
+### Metrics Visualization
+- Dashboard showing application and cluster resource usage
+- Prometheus targets and service discovery
 
-## 📌 Conclusion
+### Log Analysis
+- Loki logs from the sample application
+- Log querying examples
 
-**PGLTJ is the better choice** if you want a **truly unified observability stack** that treats metrics, logs, and traces as interconnected data sources. It provides **deeper tracing (Jaeger)**, **better log-trace correlation**, and **full telemetry integration in Grafana**.
+### Distributed Tracing
+- Jaeger UI showing trace visualization
+- Service dependency graph
 
-If your main concern is **scalability and simplicity**, **LGTM** with Mimir is a good alternative, but it lacks **Jaeger’s deep tracing capabilities**.
----
+### Alerting
+- AlertManager UI showing configured alerts
+- Example of a triggered alert
 
+## Troubleshooting
+
+### Common Issues and Solutions
+
+1. **No data in Grafana panels**:
+   - Verify Prometheus targets are up: `kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090`
+   - Check ServiceMonitor labels match Prometheus operator configuration
+
+2. **Missing logs in Loki**:
+   - Ensure Promtail is running: `kubectl get pods -n monitoring | grep promtail`
+   - Verify log volume mounts in Promtail configuration
+
+3. **No traces appearing in Jaeger**:
+   - Check JAEGER_AGENT_HOST and JAEGER_AGENT_PORT environment variables
+   - Verify Jaeger Agent connectivity from application pods
+   - Generate traffic to the application to create traces
+
+4. **Alerts not firing**:
+   - Check PrometheusRule is correctly labeled
+   - Verify AlertManager configuration is properly applied
+   - Temporarily lower alert thresholds for testing
+
+## Conclusion
+
+This implementation demonstrates a comprehensive observability solution that meets all the requirements specified in the Veriff O11Y assessment. By deploying and configuring all three pillars of observability (metrics, logs, and traces), the solution provides complete visibility into the containerized application's behavior and performance.
+
+The included alerting configuration ensures that potential issues can be detected early, allowing for proactive intervention before they affect service quality. The chosen tools represent industry best practices for Kubernetes observability and can be extended to support more complex environments and use cases.

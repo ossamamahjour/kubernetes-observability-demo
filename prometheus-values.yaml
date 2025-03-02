@@ -1,0 +1,5 @@
+alertmanager:
+  enabled: true
+  config:
+    existingSecret: alertmanager-config
+    existingSecretKey: alertmanager.yaml
