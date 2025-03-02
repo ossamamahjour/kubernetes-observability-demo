@@ -451,29 +451,6 @@ Alert notifications can be verified through:
 
 ![Alert_manager](Alert_manager.png)
 
-
-## Troubleshooting
-
-### Common Issues and Solutions
-
-1. **No data in Grafana panels**:
-   - Verify Prometheus targets are up: `kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090`
-   - Check ServiceMonitor labels match Prometheus operator configuration
-
-2. **Missing logs in Loki**:
-   - Ensure Promtail is running: `kubectl get pods -n monitoring | grep promtail`
-   - Verify log volume mounts in Promtail configuration
-
-3. **No traces appearing in Jaeger**:
-   - Check JAEGER_AGENT_HOST and JAEGER_AGENT_PORT environment variables
-   - Verify Jaeger Agent connectivity from application pods
-   - Generate traffic to the application to create traces
-
-4. **Alerts not firing**:
-   - Check PrometheusRule is correctly labeled
-   - Verify AlertManager configuration is properly applied
-   - Temporarily lower alert thresholds for testing
-
 ## Conclusion
 
 This implementation demonstrates a comprehensive observability solution that meets all the requirements specified in the Veriff O11Y assessment. By deploying and configuring all three pillars of observability (metrics, logs, and traces), the solution provides complete visibility into the containerized application's behavior and performance.
