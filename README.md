@@ -16,6 +16,7 @@
 This project demonstrates a comprehensive observability solution that collects, stores, and visualizes telemetry data from a Kubernetes environment. The implementation follows the three pillars of observability: metrics, logs, and traces, providing a complete monitoring solution for containerized applications.
 
 ## Architecture
+
 ```mermaid
 graph TD
     subgraph "Kind Kubernetes Cluster"
