@@ -17,64 +17,8 @@ This project demonstrates a comprehensive observability solution that collects, 
 
 ## Architecture
 
-The following diagram illustrates the complete observability stack architecture:
+![Architecture Diagram](Architecture using mermaidchart.png)
 
-```mermaid
-graph TD
-    subgraph "Kind Kubernetes Cluster"
-        subgraph "Monitoring Namespace"
-            subgraph "Metrics Collection"
-                prometheus[Prometheus]
-                alertmanager[AlertManager]
-                serviceMonitor[ServiceMonitor]
-                prometheus --- alertmanager
-                prometheus --- serviceMonitor
-            end
-            
-            subgraph "Log Collection"
-                loki[Loki]
-                promtail[Promtail]
-                loki --- promtail
-            end
-            
-            subgraph "Trace Collection"
-                jaeger[Jaeger Query]
-                jaegerAgent[Jaeger Agent]
-                jaeger --- jaegerAgent
-            end
-            
-            subgraph "Visualization"
-                grafana[Grafana]
-                grafana --- prometheus
-                grafana --- loki
-                grafana --- jaeger
-            end
-            
-            alertmanager --- webhook[Webhook Notification]
-        end
-        
-        subgraph "Default Namespace"
-            app[HotROD Sample App]
-            app --- serviceMonitor
-            app --- promtail
-            app --- jaegerAgent
-        end
-    end
-    
-    user[User] --- grafana
-    user --- app
-    alertmanager --- admin[Administrator]
-    
-    classDef alert fill:#f96,stroke:#333,stroke-width:2px
-    classDef app fill:#9cf,stroke:#333,stroke-width:2px
-    classDef store fill:#ccf,stroke:#333,stroke-width:2px
-    classDef visual fill:#cfc,stroke:#333,stroke-width:2px
-    
-    class prometheus,loki,jaeger store
-    class grafana visual
-    class app app
-    class alertmanager alert
-    
 The solution architecture follows a layered approach:
 
 1. **Infrastructure Layer**: Kind Kubernetes cluster running in WSL
