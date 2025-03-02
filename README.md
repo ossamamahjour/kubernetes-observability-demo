@@ -17,6 +17,8 @@ This project demonstrates a comprehensive observability solution that collects, 
 
 ## Architecture
 
+The following diagram illustrates the complete observability stack architecture:
+
 ```mermaid
 graph TD
     subgraph "Kind Kubernetes Cluster"
