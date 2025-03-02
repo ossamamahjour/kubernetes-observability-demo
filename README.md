@@ -3,10 +3,10 @@
 ## Table of Contents
 - [Overview](#overview)
 - [Architecture](#architecture)
+- [Observability Stack Justification](#observability-stack-justification)
 - [Components](#components)
 - [Setup Instructions](#setup-instructions)
 - [Alert Configuration](#alert-configuration)
-- [Observability Stack Justification](#observability-stack-justification)
 - [Demonstration and Screenshots](#demonstration-and-screenshots)
 - [Troubleshooting](#troubleshooting)
 - [Conclusion](#conclusion)
