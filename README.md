@@ -8,7 +8,6 @@
 - [Setup Instructions](#setup-instructions)
 - [Alert Configuration](#alert-configuration)
 - [Demonstration and Screenshots](#demonstration-and-screenshots)
-- [Troubleshooting](#troubleshooting)
 - [Conclusion](#conclusion)
 
 ## Overview
