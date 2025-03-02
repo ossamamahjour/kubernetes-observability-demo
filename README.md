@@ -401,9 +401,11 @@ helm upgrade prometheus prometheus-community/kube-prometheus-stack \
 
 The observability solution includes AlertManager for managing alerts. The following alerts have been configured:
 
-1. **High Application Memory Usage**: Triggers when the application's memory usage exceeds 70% of the total node memory for more than 5 minutes. This alert helps prevent application instability due to memory constraints.
+1. **High Application Memory Usage**: Monitoring application memory usage relative to total cluster memory provides visibility into the resource footprint of our application. The threshold of 50% was chosen to provide early warning of potential memory pressure.
 
-2. **High Cluster Memory Usage**: Triggers when the cluster's overall memory usage exceeds 80% for more than 5 minutes. This critical alert indicates potential resource exhaustion at the infrastructure level.
+2. **High Cluster Memory Usage**: Overall cluster memory utilization is critical for system stability. The threshold of 70% allows for timely intervention before memory exhaustion occurs.
+
+3. **Pod Restart Monitoring**: Frequent pod restarts often indicate application instability or configuration issues. The threshold of 3 restarts within 15 minutes helps identify problematic deployments.
 
 Alert notifications can be verified through:
 - AlertManager UI: `kubectl port-forward svc/prometheus-kube-prometheus-alertmanager 9093:9093 -n monitoring`
