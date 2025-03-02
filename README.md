@@ -74,6 +74,7 @@ graph TD
     class grafana visual
     class app app
     class alertmanager alert
+    
 The solution architecture follows a layered approach:
 
 1. **Infrastructure Layer**: Kind Kubernetes cluster running in WSL
