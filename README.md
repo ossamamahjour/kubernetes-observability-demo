@@ -17,7 +17,7 @@ This project demonstrates a comprehensive observability solution that collects, 
 
 ## Architecture
 
-![Architecture Diagram](Architecture using mermaidchart.png)
+![Architecture Diagram](Architecture_using_mermaidchart.png)
 
 The solution architecture follows a layered approach:
 
