@@ -413,6 +413,16 @@ Alert notifications can be verified through:
 
 ## Demonstration and Screenshots
 
+### Application deplyment demo 
+
+![hotrod app](hotrod_app.png)
+
+### Grafana Dashboard showcasing all three pillars of observability
+
+![Grafana screen](Grafana_screen.png)
+
+![Grafana_screen2](Grafana_screen2.png)
+
 ### Metrics Visualization
 - Dashboard showing prometheus System Monitoring
 
@@ -424,15 +434,23 @@ Alert notifications can be verified through:
 
 ### Log Analysis
 - Loki logs from the sample application
-- Log querying examples
+
+![Loki](Loki.png)
 
 ### Distributed Tracing
 - Jaeger UI showing trace visualization
-- Service dependency graph
+
+![Jaeger](Jaeger.png)
+
+- Jaeger in Grafana 
+
+![Jaeger_grafana](Jaeger_grafana.png)
 
 ### Alerting
 - AlertManager UI showing configured alerts
-- Example of a triggered alert
+
+![Alert_manager](Alert_manager.png)
+
 
 ## Troubleshooting
 
