@@ -7,21 +7,28 @@ type: Opaque
 stringData:
   alertmanager.yaml: |
     global:
-      smtp_smarthost: 'smtp.gmail.com:587'
-      smtp_from: 'ossama.mahjour97@@gmail.com'  # Use your sending email
-      smtp_auth_username: 'ossama.mahjour97@@gmail.com'  # Use your Gmail
-      smtp_auth_password: 'yacj gsyj wwoh dsps'  # Generate an app password in Google account
-      smtp_require_tls: true
-    
+      resolve_timeout: 5m
+
     route:
-      group_by: ['alertname', 'job']
+      # Group alerts by application and alertname
+      group_by: ['app', 'alertname']
+      
+      # Wait 30s to buffer alerts of the same group before sending
       group_wait: 30s
+      
+      # Wait 5m before sending a notification for new alerts that are added to a group
       group_interval: 5m
-      repeat_interval: 4h
-      receiver: 'email-notifications'
-    
+      
+      # Wait 3h before sending a notification again if it has been already sent
+      repeat_interval: 3h
+      
+      # Default receiver
+      receiver: 'null'
+
+    # This receiver does nothing (no notifications)
     receivers:
-    - name: 'email-notifications'
-      email_configs:
-      - to: 'ossama.mahjour97@gmail.com'
-        send_resolved: true
+    - name: 'null'
+
+    # Define detailed information about the alert
+    templates:
+    - '/etc/alertmanager/config/*.tmpl'
