@@ -16,7 +16,7 @@ This project demonstrates a comprehensive observability solution that collects, 
 
 ## Architecture
 
-![Architecture Diagram](Architecture_using_mermaidchart.png)
+![Architecture Diagram](Screen_demo/Architecture_using_mermaidchart.png)
 
 The solution architecture follows a layered approach:
 
@@ -414,41 +414,41 @@ Alert notifications can be verified through:
 
 ### Application deplyment demo 
 
-![hotrod app](hotrod_app.png)
+![hotrod app](Screen_demo/hotrod_app.png)
 
 ### Grafana Dashboard showcasing all three pillars of observability
 
-![Grafana screen](Grafana_screen.png)
+![Grafana screen](Screen_demo/Grafana_screen.png)
 
-![Grafana_screen2](Grafana_screen2.png)
+![Grafana_screen2](Screen_demo/Grafana_screen2.png)
 
 ### Metrics Visualization
 - Dashboard showing prometheus system monitoring
 
-![Prometheus monitoring](Prometheus_monitoring.png)
+![Prometheus monitoring](Screen_demo/Prometheus_monitoring.png)
 
 - Dashboard showing prometheus alerts overview
 
-![Grafana dashboerd alert](grafana_dashboerd_alert.png)
+![Grafana dashboerd alert](Screen_demo/grafana_dashboerd_alert.png)
 
 ### Log Analysis
 - Loki logs from the sample application
 
-![Loki](Loki.png)
+![Loki](Screen_demo/Loki.png)
 
 ### Distributed Tracing
 - Jaeger UI showing trace visualization
 
-![Jaeger](Jaeger.png)
+![Jaeger](Screen_demo/Jaeger.png)
 
 - Jaeger in Grafana 
 
-![Jaeger_grafana](Jaeger_grafana.png)
+![Jaeger_grafana](Screen_demo/Jaeger_grafana.png)
 
 ### Alerting
 - AlertManager UI showing configured alerts
 
-![Alert_manager](Alert_manager.png)
+![Alert_manager](Screen_demo/Alert_manager.png)
 
 ## Conclusion
 
