@@ -1,4 +1,4 @@
-# Veriff Observability (O11Y) Assessment
+#  Observability Solution 
 
 ## Table of Contents
 - [Overview](#overview)
